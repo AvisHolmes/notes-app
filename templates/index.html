@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление заметками</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        textarea { resize: vertical; height: 100px; }
+        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .note { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .note h3 { margin-top: 0; }
+        .note-meta { color: #666; font-size: 0.9em; }
+        .note-actions { margin-top: 10px; }
+        .btn-edit { background-color: #28a745; }
+        .btn-delete { background-color: #dc3545; }
+        .alert { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Управление заметками</h1>
+    
+    <!-- Отображение сообщений -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Форма добавления новой заметки -->
+    <h2>Добавить новую заметку</h2>
+    <form method="POST" action="{{ url_for('index') }}">
+        {{ form.hidden_tag() }} <!-- CSRF токен -->
+        
+        <div class="form-group">
+            {{ form.title.label }}
+            {{ form.title(class="form-control") }}
+            {% if form.title.errors %}
+                <div style="color: red;">
+                    {% for error in form.title.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.content.label }}
+            {{ form.content(class="form-control") }}
+            {% if form.content.errors %}
+                <div style="color: red;">
+                    {% for error in form.content.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+    
+    <hr>
+    
+    <!-- Список заметок -->
+    <h2>Все заметки</h2>
+    {% if notes %}
+        {% for note in notes %}
+            <div class="note">
+                <h3>{{ note.title }}</h3>
+                <p>{{ note.content }}</p>
+                <div class="note-meta">
+                    Создано: {{ note.created_at.strftime('%d.%m.%Y %H:%M') }}
+                </div>
+                <div class="note-actions">
+                    <a href="{{ url_for('edit_note', note_id=note.id) }}">
+                        <button class="btn-edit">Редактировать</button>
+                    </a>
+                    <form method="POST" action="{{ url_for('delete_note', note_id=note.id) }}" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn-delete" onclick="return confirm('Вы уверены, что хотите удалить эту заметку?')">Удалить</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Заметок пока нет. Добавьте первую заметку!</p>
+    {% endif %}
+</body>
+</html>
