@@ -23,14 +23,4 @@ jobs:
         run: pip install bandit
           
       - name: Run Bandit scan
-        run: |
-          bandit -r . -f json -o bandit.json || true
-          bandit -r . -ll
-        continue-on-error: false
-          
-      - name: Upload Bandit report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: bandit-report
-          path: bandit.json
+        run: bandit -r . -ll
